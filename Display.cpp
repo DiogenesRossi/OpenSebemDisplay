@@ -1,16 +1,28 @@
 #include "Display.h"
 #include <WProgram.h>
 
+/**
+ * Atualiza o dado de um componente do display. 
+ *    Apenas atualiza a imagem da mémoria do display. 
+ *    Display::update() copia da imagem na memória para o display físico.
+ * @param  *dst       ponteiro para imagem da memória do display
+ * @param  *src       ponteiro com o novo dado a ser atualizado
+ * @param  dstoffset  posição do primeiro bit referente ao componente, na imagem da memória do display
+ * @param  n          quantidade de bits usado pelo componente
+ */
 void memcpy_bits(uint8_t  *dst, uint8_t  *src, int dstoffset, int n) {
-  uint8_t *bytedst = &dst[(int) dstoffset / 8];
+  /* A imagem tem que ser atualizada de byte em byte, um componente pode usar 1 ou vários bytes, 
+     sendo que os outros bits dentro do mesmo byte não utilizados devem ser preservados
+  */
   int bitoffset = (int) dstoffset % 8;
-  int bytetot = (int) (n / 8);
-  if (bitoffset || !bytetot) {
-    bytetot++;
+  int dstidx = (int) (dstoffset / 8);
+  int minbytes = (int) (n / 8); // quantidade de bytes a atualizar
+  if (bitoffset || !minbytes) {
+    minbytes++;
   }
   int copied = 0;
   uint8_t mask;
-  for(int i = 0; i < bytetot; i++) {
+  for(int i = 0; i < minbytes; i++) {
     uint8_t bytesrc = src[i];
     uint8_t basemask = 0xFF;
     if ((n - copied) < 8) {
@@ -21,20 +33,20 @@ void memcpy_bits(uint8_t  *dst, uint8_t  *src, int dstoffset, int n) {
     }
     // copy first byte
     mask = basemask >> bitoffset;
-    *dst = *dst & ~mask;
+    dst[dstidx] = dst[dstidx] & ~mask;
     bytesrc = bytesrc >> bitoffset;
-    *dst = *dst | bytesrc;
+    dst[dstidx] = dst[dstidx] | bytesrc;
     if (bitoffset) {
       // if there is an offset, copy the remaining bits to the second byte
       bytesrc = src[i];
       mask = basemask << (8 - bitoffset);
-      *(dst+1) = *(dst+1) & ~mask;
+      dst[dstidx+1] = dst[dstidx+1] & ~mask;
       bytesrc = bytesrc << (8 - bitoffset);
-      *(dst+1) = *(dst+1) | bytesrc;
+      dst[dstidx+1] = dst[dstidx+1] | bytesrc;
     }
     dst++;
     copied += 8;
-    if(i < (bytetot-1)) break;
+    if(i < (minbytes-1)) break;
   }
 }
 
@@ -178,11 +190,31 @@ void Display::set(int idx, uint8_t value)
   }
 }
 
+char *toBinary(int value, char *ret){
+  int i;
+  for (i=0;i<8;i++){
+    ret[i]=((value & 0x80)==0x80?'1':'0');  //0x80="10000000"B
+    value=(value<<1);
+  }
+  ret[8]='\0';
+  return ret;
+}
+
 void Display::update()
 {
+    char buf[16];
     int sent = 0;
     for(int i = _byteslen-1; i >= 0; i--) {
       shiftOut(_data, _clock, LSBFIRST, _bytes[i]);
+      toBinary(_bytes[i], buf);
+#ifdef DBG_0
+      Serial.print("line: %d");
+      Serial.print(i);
+      Serial.print(" = ");
+      Serial.print(buf);
+      sprintf(buf," 0x%.2x\n", _bytes[i]);
+      Serial.print(buf);
+#endif
     }
     digitalWrite(_latch, HIGH);
     delay(1);

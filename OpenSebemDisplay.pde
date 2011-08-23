@@ -6,6 +6,7 @@
 int dsp_cfg[] = { DSP_LED, DSP_7SEGINV };
 int dsp_len = sizeof(dsp_cfg) / sizeof(int);
 
+//Display::Display(clock,latch, data, *types, len)
 Display dsp(12, 8, 11, dsp_cfg, dsp_len);
 
 void setup() {
