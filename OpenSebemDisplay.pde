@@ -1,6 +1,5 @@
 #include "Display.h"
 
-
 // Configuration for display (can not be modified at runtime! The Display class will keep referencing this array)
 // Os itens do seu display. (Nao alterar durante a execucao)
 int dsp_cfg[] = { DSP_7SEGINV,  DSP_LED, DSP_7SEGINV }; //Adicione neste vetor os componentes do seu display. As opcoes sao: DSP_7SEG, DSP_7SEGINV, DSP_ALPHA, DSP_LED, DSP_M5X7:

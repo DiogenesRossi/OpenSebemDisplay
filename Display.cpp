@@ -168,6 +168,89 @@ void Display::set(int idx, uint8_t value)
       memcpy_bits(_bytes, buf, _offsets[idx], 8);
       break;
     case DSP_ALPHA:
+      /* Alpha Numeric Display
+          Diagram:                 Pins:
+          a1   a2
+         ---- ----            A1 - 01  10 - D2
+        |\   |   /|            J - 02  11 - Com
+      f | \h |j /k| b          H - 03  12 - Dot
+        |  \ | /  |            F - 04  13 - C
+         -g1- -g2-            G1 - 05  14 - L
+        |   /|\   |            M - 06  15 - G2
+      e |  /n|m \l| c          N - 07  16 - B
+        | /  |   \|            E - 08  17 - K
+         ---- ----  . dp      D1 - 09  18 - A2
+          d1   d2
+          
+      ShiftOut Sequence:
+      00,01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16  [ bit sequence ]
+      a1,a2, b, c,d1,d2, e, f,g1,g2, h, j, k, l, m, n,dot
+      01,18,16,13,09,10,08,04,05,15,03,02,17,14,06,07,12  [pins on display]
+      */
+        case 'A': buf[0] = 0x4c; buf[1] = 0x02; break;
+        case 'B': buf[0] = 0x53; buf[1] = 0x08; break;
+        case 'C': buf[0] = 0x0f; buf[1] = 0x00; break;
+        case 'D': buf[0] = 0x13; buf[1] = 0x08; break;
+        case 'E': buf[0] = 0x0f; buf[1] = 0x02; break;
+        case 'F': buf[0] = 0x0c; buf[1] = 0x02; break;
+        case 'G': buf[0] = 0x4f; buf[1] = 0x00; break;
+        case 'H': buf[0] = 0x4c; buf[1] = 0x02; break;
+        case 'I': buf[0] = 0x13; buf[1] = 0x08; break;
+        case 'J': buf[0] = 0x07; buf[1] = 0x00; break;
+        case 'K': buf[0] = 0xac; buf[1] = 0x02; break;
+        case 'L': buf[0] = 0x0f; buf[1] = 0x00; break;
+        case 'M': buf[0] = 0x2c; buf[1] = 0x20; break;
+        case 'N': buf[0] = 0x8c; buf[1] = 0x20; break;
+        case 'O': buf[0] = 0x0f; buf[1] = 0x00; break;
+        case 'P': buf[0] = 0x4c; buf[1] = 0x02; break;
+        case 'Q': buf[0] = 0x8f; buf[1] = 0x00; break;
+        case 'R': buf[0] = 0xcc; buf[1] = 0x02; break;
+        case 'S': buf[0] = 0x4b; buf[1] = 0x02; break;
+        case 'T': buf[0] = 0x10; buf[1] = 0x08; break;
+        case 'U': buf[0] = 0x0f; buf[1] = 0x00; break;
+        case 'V': buf[0] = 0x2c; buf[1] = 0x10; break;
+        case 'W': buf[0] = 0x8c; buf[1] = 0x10; break;
+        case 'X': buf[0] = 0xa0; buf[1] = 0x30; break;
+        case 'Y': buf[0] = 0x20; buf[1] = 0x28; break;
+        case 'Z': buf[0] = 0x23; buf[1] = 0x10; break;
+        case '[': buf[0] = 0x0e; buf[1] = 0x00; break;
+        case '\': buf[0] = 0x80; buf[1] = 0x20; break;
+        case ']': buf[0] = 0x01; buf[1] = 0x00; break;
+        case '^': buf[0] = 0x80; buf[1] = 0x10; break;
+        case '_': buf[0] = 0x03; buf[1] = 0x00; break;
+        case ' ': buf[0] = 0x00; buf[1] = 0x00; break;
+        case '~': buf[0] = 0x12; buf[1] = 0x20; break;
+        case '"': buf[0] = 0x18; buf[1] = 0x00; break;
+        case '#': buf[0] = 0x53; buf[1] = 0x0a; break;
+        case '$': buf[0] = 0x5b; buf[1] = 0x0a; break;
+        case '%': buf[0] = 0x79; buf[1] = 0x1a; break;
+        case '&': buf[0] = 0x97; buf[1] = 0x22; break;
+        case ''': buf[0] = 0x20; buf[1] = 0x00; break;
+        case '(': buf[0] = 0xa0; buf[1] = 0x00; break;
+        case ')': buf[0] = 0x05; buf[1] = 0x30; break;
+        case '*': buf[0] = 0xf0; buf[1] = 0x3a; break;
+        case '+': buf[0] = 0x50; buf[1] = 0x0a; break;
+        case ';': buf[0] = 0x80; buf[1] = 0x40; break;
+        case '-': buf[0] = 0x40; buf[1] = 0x02; break;
+        case '.': buf[0] = 0x80; buf[1] = 0x00; break;
+        case '/': buf[0] = 0x20; buf[1] = 0x10; break;
+        case '0': buf[0] = 0x2f; buf[1] = 0x10; break;
+        case '1': buf[0] = 0x10; buf[1] = 0x08; break;
+        case '2': buf[0] = 0x47; buf[1] = 0x02; break;
+        case '3': buf[0] = 0x43; buf[1] = 0x02; break;
+        case '4': buf[0] = 0x48; buf[1] = 0x02; break;
+        case '5': buf[0] = 0x4b; buf[1] = 0x02; break;
+        case '6': buf[0] = 0x4f; buf[1] = 0x02; break;
+        case '7': buf[0] = 0x00; buf[1] = 0x00; break;
+        case '8': buf[0] = 0x4f; buf[1] = 0x02; break;
+        case '9': buf[0] = 0x4b; buf[1] = 0x02; break;
+        case '-': buf[0] = 0x02; buf[1] = 0x00; break;
+        case '-': buf[0] = 0x00; buf[1] = 0x10; break;
+        case '<': buf[0] = 0x43; buf[1] = 0x10; break;
+        case '=': buf[0] = 0x43; buf[1] = 0x02; break;
+        case '>': buf[0] = 0x83; buf[1] = 0x20; break;
+        case '?': buf[0] = 0x40; buf[1] = 0x08; break;
+        case '@': buf[0] = 0x07; buf[1] = 0x0a; break;
       //TODO:
       memcpy_bits(_bytes, buf, _offsets[idx], 14);
       break;
