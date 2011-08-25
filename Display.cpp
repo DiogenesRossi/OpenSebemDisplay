@@ -214,7 +214,7 @@ void Display::set(int idx, uint8_t value)
         case 'Y': buf[0] = 0x20; buf[1] = 0x28; break;
         case 'Z': buf[0] = 0x23; buf[1] = 0x10; break;
         case '[': buf[0] = 0x0e; buf[1] = 0x00; break;
-        case '\': buf[0] = 0x80; buf[1] = 0x20; break;
+        case '\\': buf[0] = 0x80; buf[1] = 0x20; break;
         case ']': buf[0] = 0x01; buf[1] = 0x00; break;
         case '^': buf[0] = 0x80; buf[1] = 0x10; break;
         case '_': buf[0] = 0x03; buf[1] = 0x00; break;
@@ -225,7 +225,7 @@ void Display::set(int idx, uint8_t value)
         case '$': buf[0] = 0x5b; buf[1] = 0x0a; break;
         case '%': buf[0] = 0x79; buf[1] = 0x1a; break;
         case '&': buf[0] = 0x97; buf[1] = 0x22; break;
-        case ''': buf[0] = 0x20; buf[1] = 0x00; break;
+        case '\'': buf[0] = 0x20; buf[1] = 0x00; break;
         case '(': buf[0] = 0xa0; buf[1] = 0x00; break;
         case ')': buf[0] = 0x05; buf[1] = 0x30; break;
         case '*': buf[0] = 0xf0; buf[1] = 0x3a; break;
@@ -244,7 +244,6 @@ void Display::set(int idx, uint8_t value)
         case '7': buf[0] = 0x00; buf[1] = 0x00; break;
         case '8': buf[0] = 0x4f; buf[1] = 0x02; break;
         case '9': buf[0] = 0x4b; buf[1] = 0x02; break;
-        case '-': buf[0] = 0x02; buf[1] = 0x00; break;
         case '-': buf[0] = 0x00; buf[1] = 0x10; break;
         case '<': buf[0] = 0x43; buf[1] = 0x10; break;
         case '=': buf[0] = 0x43; buf[1] = 0x02; break;
