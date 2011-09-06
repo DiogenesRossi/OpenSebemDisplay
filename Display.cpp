@@ -1,6 +1,8 @@
 #include "Display.h"
 #include <WProgram.h>
 
+char maskTable[9]={0x00,0x80,0xc0,0xe0,0xf0,0xf8,0xfc,0xfe,0xff};
+
 /**
  * Atualiza o dado de um componente do display. 
  *    Apenas atualiza a imagem da mémoria do display. 
@@ -16,37 +18,45 @@ void memcpy_bits(uint8_t  *dst, uint8_t  *src, int dstoffset, int n) {
   */
   int bitoffset = (int) dstoffset % 8;
   int dstidx = (int) (dstoffset / 8);
-  int minbytes = (int) (n / 8); // quantidade de bytes a atualizar
+  int minbytes = (int) (n / 8); // quantidade de bytes minima a atualizar no dst
   if (bitoffset || !minbytes) {
-    minbytes++;
+    minbytes++; // se o offset for maior que 0 usa um byte +
   }
   int copied = 0;
   uint8_t mask;
+  // loop through the bytes to be modified
   for(int i = 0; i < minbytes; i++) {
     uint8_t bytesrc = src[i];
-    uint8_t basemask = 0xFF;
+ /*  
+    uint8_t basemask = 0xFF;  // default copy all bits
+    // if bits left are less than 8, define the mask
     if ((n - copied) < 8) {
+      // TODO: use mask array for optimization
       basemask = 0;
       for(int x = 0; x < n-copied; x++) {
         basemask = basemask | (0x80 >> x);
       }
     }
+*/    
+    uint8_t basemask = maskTable[n - copied];
     // copy first byte
     mask = basemask >> bitoffset;
-    dst[dstidx] = dst[dstidx] & ~mask;
+    dst[dstidx] = dst[dstidx] & ~mask; // zero masked bits
     bytesrc = bytesrc >> bitoffset;
-    dst[dstidx] = dst[dstidx] | bytesrc;
+    dst[dstidx] = dst[dstidx] | bytesrc; // copy shifted bits from source
     if (bitoffset) {
       // if there is an offset, copy the remaining bits to the second byte
       bytesrc = src[i];
+      // TODO: mask = ~mask should also work
       mask = basemask << (8 - bitoffset);
       dst[dstidx+1] = dst[dstidx+1] & ~mask;
       bytesrc = bytesrc << (8 - bitoffset);
       dst[dstidx+1] = dst[dstidx+1] | bytesrc;
     }
-    dst++;
+    dstidx++;
     copied += 8;
-    if(i < (minbytes-1)) break;
+    // the last byte is already modified
+    if(i >= (minbytes-1)) break;
   }
 }
 
@@ -67,7 +77,7 @@ Display::Display(uint8_t clock, uint8_t latch, uint8_t data, int *types, int len
         bits_needed += 8;
         break;
       case DSP_ALPHA:
-        bits_needed += 14;
+        bits_needed += 16;
         break;
       case DSP_LED:
         bits_needed += 1;
@@ -181,12 +191,19 @@ void Display::set(int idx, uint8_t value)
         | /  |   \|            E - 08  17 - K
          ---- ----  . dp      D1 - 09  18 - A2
           d1   d2
-          
-      ShiftOut Sequence:
-      00,01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16  [ bit sequence ]
-      a1,a2, b, c,d1,d2, e, f,g1,g2, h, j, k, l, m, n,dot
-      01,18,16,13,09,10,08,04,05,15,03,02,17,14,06,07,12  [pins on display]
-      */
+
+      byte[0]                  byte[1]                  byte[3]
+      a1,a2,b1,c1,d1,d2,e1,f1, g1,g2,h1,j1,k1,l1,m1,n1, dp      
+      07,06,05,04,03,02,01,00  07,06,05,04,03,02,01,00  07      [ bit sequence ]
+      02,01,15,13,11,10,05,03, 14,16,04,06,18,09,07,08, nc      [pinout on shiftout ]
+      01,18,16,13,09,10,08,04, 05,15,03,02,17,14,06,07, 12      [pinouts on display ]
+                */
+      switch(value) {
+        case ',': buf[0] = 0xff; buf[1] = 0xff; break;
+        case '1': buf[0] = 0x38; buf[1] = 0x00; break;
+        case 'A': buf[0] = 0xf3; buf[1] = 0xc0; break;
+        /*
+        case ',': buf[0] = 0x80; buf[1] = 0x00; break;
         case 'A': buf[0] = 0x4c; buf[1] = 0x02; break;
         case 'B': buf[0] = 0x53; buf[1] = 0x08; break;
         case 'C': buf[0] = 0x0f; buf[1] = 0x00; break;
@@ -244,14 +261,15 @@ void Display::set(int idx, uint8_t value)
         case '7': buf[0] = 0x00; buf[1] = 0x00; break;
         case '8': buf[0] = 0x4f; buf[1] = 0x02; break;
         case '9': buf[0] = 0x4b; buf[1] = 0x02; break;
-        case '-': buf[0] = 0x00; buf[1] = 0x10; break;
         case '<': buf[0] = 0x43; buf[1] = 0x10; break;
         case '=': buf[0] = 0x43; buf[1] = 0x02; break;
         case '>': buf[0] = 0x83; buf[1] = 0x20; break;
         case '?': buf[0] = 0x40; buf[1] = 0x08; break;
         case '@': buf[0] = 0x07; buf[1] = 0x0a; break;
-      //TODO:
-      memcpy_bits(_bytes, buf, _offsets[idx], 14);
+        */
+        default : buf[0] = 0x00; buf[1] = 0x00; break;
+      }
+      memcpy_bits(_bytes, buf, _offsets[idx], 16);
       break;
     case DSP_LED:
       if (value == '0') {
@@ -288,8 +306,8 @@ void Display::update()
     int sent = 0;
     for(int i = _byteslen-1; i >= 0; i--) {
       shiftOut(_data, _clock, LSBFIRST, _bytes[i]);
-      toBinary(_bytes[i], buf);
 #ifdef DBG_0
+      toBinary(_bytes[i], buf);
       Serial.print("line: %d");
       Serial.print(i);
       Serial.print(" = ");
