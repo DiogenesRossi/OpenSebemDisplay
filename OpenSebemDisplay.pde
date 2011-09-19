@@ -2,7 +2,7 @@
 
 // Configuration for display (can not be modified at runtime! The Display class will keep referencing this array)
 // Os itens do seu display. (Nao alterar durante a execucao)
-int dsp_cfg[] = { DSP_ALPHA }; //Adicione neste vetor os componentes do seu display. As opcoes sao: DSP_7SEG, DSP_7SEGINV, DSP_ALPHA, DSP_LED, DSP_M5X7:
+int dsp_cfg[] = { DSP_LED, DSP_ALPHA }; //Adicione neste vetor os componentes do seu display. As opcoes sao: DSP_7SEG, DSP_7SEGINV, DSP_ALPHA, DSP_LED, DSP_M5X7:
 int dsp_len = sizeof(dsp_cfg) / sizeof(int);
 
 /**
@@ -19,9 +19,8 @@ void setup() {
   #ifdef DBG_0  
   Serial.begin(9600);
   #endif
-  dsp.set(0, 'A');
-  //dsp.set(1, ' ');
-  //dsp.set(2, '1');
+  dsp.set(0, 1);
+  dsp.set(1, ' ');
   dsp.update();
 }
 
@@ -30,8 +29,30 @@ int count = 0;
 int ledState = 0;
 
 void loop() {
-  
-  
+  int i;
+  for (i=0;i<=16;i++){
+    dsp.set(1, i);
+    dsp.update();
+    delay(1000);
+  }    
+
+  for (i=0x21;i<=0x7e;i++){
+    dsp.set(1, i);
+    dsp.update();
+    delay(1000);
+  } 
+  /*
+  for (i='A';i<='Z';i++){
+    dsp.set(1, i);
+    dsp.update();
+    delay(1000);
+  }
+  for (i='a';i<='z';i++){
+    dsp.set(1, i);
+    dsp.update();
+    delay(1000);
+  }
+  */
 }
 
 
